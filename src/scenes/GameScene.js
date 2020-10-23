@@ -2,6 +2,7 @@ import Phaser from 'phaser'
 
 const GROUND_KEY = 'ground'
 const DUDE_KEY = 'dude'
+const STAR_KEY = 'star'
 
 export default class GameScene extends Phaser.Scene
 {
@@ -17,7 +18,7 @@ export default class GameScene extends Phaser.Scene
 	{
 		this.load.image('sky', 'assets/sky.png')
 		this.load.image('ground', 'assets/platform.png')
-		this.load.image('star', 'assets/star.png')
+        this.load.image(STAR_KEY, 'assets/star.png')
 		this.load.image('bomb', 'assets/bomb.png')
 
 		this.load.spritesheet(DUDE_KEY,  
@@ -31,9 +32,13 @@ export default class GameScene extends Phaser.Scene
 		this.add.image(400, 300, 'sky')
 
 		const platforms = this.createPlatforms()
-		this.player = this.createPlayer()
+        this.player = this.createPlayer()
+        const stars = this.createStars()
 
         this.physics.add.collider(this.player, platforms)
+        this.physics.add.collider(stars, platforms)
+
+        this.physics.add.overlap(this.player, stars, this.collectStar, null, this)
         
         this.cursors = this.input.keyboard.createCursorKeys()
     }
@@ -105,5 +110,25 @@ export default class GameScene extends Phaser.Scene
         })
         
         return player
+    }
+    
+    createStars()
+	{
+		const stars = this.physics.add.group({
+			key: STAR_KEY,
+			repeat: 11,
+			setXY: { x: 12, y: 0, stepX: 70 }
+		})
+		
+		stars.children.iterate((child) => {
+			child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8))
+		})
+
+		return stars
+    }
+    
+    collectStar(player, star)
+	{
+		star.disableBody(true, true)
 	}
 }
