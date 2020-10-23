@@ -10,6 +10,7 @@ export default class GameScene extends Phaser.Scene
         super('game-scene')
         
         this.player = undefined
+        this.cursors = undefined
 	}
 
 	preload()
@@ -29,26 +30,59 @@ export default class GameScene extends Phaser.Scene
 	{
 		this.add.image(400, 300, 'sky')
 
-        this.createPlatforms()
-		this.createPlayer()
+		const platforms = this.createPlatforms()
+		this.player = this.createPlayer()
+
+        this.physics.add.collider(this.player, platforms)
+        
+        this.cursors = this.input.keyboard.createCursorKeys()
     }
     
     createPlatforms()
 	{
-		const platforms = this.physics.add.staticGroup()
+        const platforms = this.physics.add.staticGroup()
 
 		platforms.create(400, 568, GROUND_KEY).setScale(2).refreshBody()
 	
 		platforms.create(600, 400, GROUND_KEY)
 		platforms.create(50, 250, GROUND_KEY)
-		platforms.create(750, 220, GROUND_KEY)
+        platforms.create(750, 220, GROUND_KEY)
+        
+        return platforms
     }
+
+    update()
+	{
+		if (this.cursors.left.isDown)
+		{
+			this.player.setVelocityX(-160)
+
+			this.player.anims.play('left', true)
+		}
+		else if (this.cursors.right.isDown)
+		{
+			this.player.setVelocityX(160)
+
+			this.player.anims.play('right', true)
+		}
+		else
+		{
+			this.player.setVelocityX(0)
+
+			this.player.anims.play('turn')
+		}
+
+		if (this.cursors.up.isDown && this.player.body.touching.down)
+		{
+			this.player.setVelocityY(-330)
+		}
+	}
     
     createPlayer()
 	{
-		this.player = this.physics.add.sprite(100, 450, DUDE_KEY)
-		this.player.setBounce(0.2)
-		this.player.setCollideWorldBounds(true)
+        const player = this.physics.add.sprite(100, 450, DUDE_KEY)
+		player.setBounce(0.2)
+        player.setCollideWorldBounds(true)
 
 		this.anims.create({
 			key: 'left',
@@ -68,6 +102,8 @@ export default class GameScene extends Phaser.Scene
 			frames: this.anims.generateFrameNumbers(DUDE_KEY, { start: 5, end: 8 }),
 			frameRate: 10,
 			repeat: -1
-		})
+        })
+        
+        return player
 	}
 }
